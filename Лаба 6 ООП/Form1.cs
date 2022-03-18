@@ -11,8 +11,8 @@ using System.Windows.Forms;
 namespace Лаба_6_ООП
 {
     public partial class Form1 : Form
-    {    
-        public void selectObj(int l) 
+    {
+        public void selectObj(int l)
         {
             for (int i = 0; i < V.get_size(); i++)
             {
@@ -60,7 +60,33 @@ namespace Лаба_6_ООП
                 per.draw(gr);
             }
         }
-    
+
+        class Frame : Object
+        {
+            public int a = 50, b = 30;
+            public Frame(int x, int y, int a, int b)
+            {
+                this.x = x;
+                this.y = y;
+                this.a = a;
+                this.b = b;
+            }
+
+            public override void draw(Graphics gr)
+            {
+                gr.DrawRectangle(redPen, x - a, y - b, 2 * a, 2 * b);
+            }
+
+            public override bool prov_(int X, int Y)
+            {
+                if (x - a <= X && X <= x - a + 2 * a && y - b <= Y && Y <= y - b + 2 * b)
+                {
+                    selected = 1;
+                    return true;
+                }
+                else return false;
+            }
+        }
         class Object
         {
             public int x, y, selected = 0;
@@ -68,11 +94,8 @@ namespace Лаба_6_ООП
             public Pen blackPen;
             public Pen redPen;
             public Pen bluePen;
-            public Pen darkGoldPen;
-            public Font fo;
             public Brush br, brw;
-            public PointF point;
-
+            public Frame fr1, fr2;
             public Object()
             {
                 blackPen = new Pen(Color.Black);
@@ -81,14 +104,11 @@ namespace Лаба_6_ООП
                 redPen.Width = 3;
                 bluePen = new Pen(Color.BlueViolet);
                 bluePen.Width = 3;
-                darkGoldPen = new Pen(Color.DarkGoldenrod);
-                darkGoldPen.Width = 2;
-                fo = new Font("Arial", 15);
                 br = Brushes.Black;
                 brw = Brushes.White;
             }
 
-            virtual public bool prov_(int X, int Y) 
+            virtual public bool prov_(int X, int Y)
             {
                 return false;
             }
@@ -116,6 +136,84 @@ namespace Лаба_6_ООП
             }
         }
 
+        class Group : Object
+        {
+            public Storage<Object> objects;
+            
+            public int per, _x = 0, _y = 0, max = 0, min = 0;
+            public Group()
+            {
+                objects = new Storage<Object>();
+            }
+
+
+            public void addshape(Object per)
+            {
+                objects.push_back(per);
+            }
+            public override void draw(Graphics gr)
+            {
+                Object perObj;
+                if (x != 0 || y != 0)
+                {
+                    for (int i = 0; i < objects.get_size(); i++)
+                    {
+                        perObj = objects.getObject(i);
+                        perObj.x += x;
+                        perObj.y += y;
+                    }
+                    x = 0; y = 0;
+                }
+                if (selected == 1)
+                {
+                    for (int i = 0; i < objects.get_size(); i++)
+                    {
+                        perObj = objects.getObject(i);
+                        perObj.selected = 1;
+                        perObj.draw(gr);
+                    }
+                }
+                else
+                    for (int i = 0; i < objects.get_size(); i++)
+                    {
+                        perObj = objects.getObject(i);
+                        perObj.selected = 0;
+                        perObj.draw(gr);
+                    }
+            }
+
+            public override bool prov_(int X, int Y)
+            {
+                Object perObj;
+                for (int i = 0; i < objects.get_size(); i++)
+                {
+                    perObj = objects.getObject(i);
+                    if (perObj.prov_(X, Y))
+                    {
+                        selected = 1;
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            public override bool prov_exit(int X, int Y)
+            {
+                Object perObj;
+                for (int i = 0; i < objects.get_size(); i++)
+                {
+                    perObj = objects.getObject(i);
+                    if (!perObj.prov_exit(X, Y))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+
+        }
+
         class Vertex : Object
         {
             public int w = 30, h = 30, R = 30;
@@ -124,24 +222,25 @@ namespace Лаба_6_ООП
             {
                 this.x = x;
                 this.y = y;
+                fr1 = new Frame(x, y, w + 10, h + 10);
+                fr2 = new Frame(x, y, w - 10, h - 10);
             }
 
             public override void draw(Graphics gr)
             {
-                gr.FillEllipse(brw, (x - w), (y - h), w*2, h*2);
-                gr.DrawEllipse(blackPen, (x - w), (y - h), w*2, h*2);
+                gr.FillEllipse(brw, (x - w), (y - h), w * 2, h * 2);
+                
                 if (selected == 1)
-                    draw_frame(gr);
+                    gr.DrawEllipse(redPen, (x - w), (y - h), w * 2, h * 2);
+                else
+                    gr.DrawEllipse(blackPen, (x - w), (y - h), w * 2, h * 2);
+
             }
 
-            public override void draw_frame(Graphics gr) 
+            public override void draw_frame(Graphics gr)
             {
-                gr.DrawRectangle(bluePen, (x - w), (y - h), w*2, h*2);
-
-                gr.DrawRectangle(redPen, x-6, (y - h)-6, 12, 12);
-                gr.DrawRectangle(redPen, (x - w)-6, y-6, 12, 12);
-                gr.DrawRectangle(redPen, (x + w)-6, (y)-6, 12, 12);
-                gr.DrawRectangle(redPen, (x)-6, (y + h)-6, 12, 12);
+                fr1.draw(gr);
+                fr2.draw(gr);
             }
 
             public override bool prov_(int X, int Y)
@@ -155,84 +254,9 @@ namespace Лаба_6_ООП
                 else return false;
             }
 
-            public override bool prov_exit(int X, int Y) 
-            {
-                if (X < 800 - w && X > w && Y > h && Y < 424 - h)
-                    return true;
-                else
-                    return false;
-            }
-
-            public override bool prov_frame(int X, int Y)
-            {
-                if (x - 6 <= X && X <= x + 6 && (y - h) - 6 <= Y && Y <= (y - h) + 6)//1
-                    return true;
-                else if ((x - w) - 6 <= X && X <= (x - w) + 6 && y - 6 <= Y && Y <= y + 6)//2
-                    return true;
-                else if ((x + w) - 6 <= X && X <= (x + w) + 6 && (y) - 6 <= Y && Y <= (y+6))//3
-                    return true;
-                else if ((x) - 6 <= X && X <= (x+6) && (y + w) - 6 <= Y && Y <= (y + w)+6)//4
-                    return true;
-                else return false;
-            }
-
-            public override void set_coords(int X, int Y, int Xd, int Yd)
-            {
-                if (x - 6 <= X && X <= x + 6 && (y - h) - 6 <= Y && Y <= (y - h) + 6)//1
-                    h += Y - Yd;
-                else if ((x - w) - 6 <= X && X <= (x - w) + 6 && y - 6 <= Y && Y <= y + 6)//2
-                    w += X - Xd;
-                else if ((x + w) - 6 <= X && X <= (x + w) + 6 && (y) - 6 <= Y && Y <= (y + 6))//3
-                    w += Xd - X;
-                else if ((x) - 6 <= X && X <= (x + 6) && (y + w) - 6 <= Y && Y <= (y + w) + 6)//4
-                    h += Yd - Y;
-            }
-        }
-
-        class Triangle : Object
-        {
-            public int a = 40, b = 40, c = 40, d = 40;
-
-            PointF[] points = new PointF[3];
-            public Triangle(int x, int y)
-            {
-                this.x = x;
-                this.y = y;
-            }
-
-            public override void draw(Graphics gr)
-            {
-                points[0].X = x; points[0].Y = y - a;
-                points[1].X = x - c; points[1].Y = y+b;
-                points[2].X = x + d; points[2].Y = y+b;
-                gr.DrawPolygon(blackPen, points);
-                gr.FillPolygon(brw, points);
-                if (selected == 1)
-                    draw_frame(gr);  
-            }
-
-            public override void draw_frame(Graphics gr)
-            {
-                gr.DrawRectangle(bluePen, x-c, y-a, c+d, a+b);
-
-                gr.DrawRectangle(redPen, x - 6, (y - a) - 6, 12, 12);
-                gr.DrawRectangle(redPen, (x - c) - 6, y - 6, 12, 12);
-                gr.DrawRectangle(redPen, (x + d) - 6, (y) - 6, 12, 12);
-                gr.DrawRectangle(redPen, (x) - 6, (y + b) - 6, 12, 12);
-            }
-
-            public override bool prov_(int X, int Y)
-            {
-                if (Y > y - a && Y < y + b && X > x - c && X < x + d)
-                {/*((Y < 2 * X && X < x) || (Y < 0.5 * X && X > x))*/
-                    return true;
-                }
-                else return false;
-            }
-
             public override bool prov_exit(int X, int Y)
             {
-                if (X < 800 - 40 && X > 40 && Y > 40 && Y < 424 - 40)
+                if (x+X < 800 - w && x+X > w && y+Y > h && y+Y < 424 - h)
                     return true;
                 else
                     return false;
@@ -240,60 +264,48 @@ namespace Лаба_6_ООП
 
             public override bool prov_frame(int X, int Y)
             {
-                if (x - 6 <= X && X <= x + 6 && (y - a) - 6 <= Y && Y <= (y - a) + 6)//1
+                if (fr1.prov_(X, Y) && !fr2.prov_(X, Y))
                     return true;
-                else if ((x - c) - 6 <= X && X <= (x - c) + 6 && y - 6 <= Y && Y <= y + 6)//2
-                    return true;
-                else if ((x + d) - 6 <= X && X <= (x + d) + 6 && (y) - 6 <= Y && Y <= (y + 6))//3
-                    return true;
-                else if ((x) - 6 <= X && X <= (x + 6) && (y + b) - 6 <= Y && Y <= (y + b) + 6)//4
-                    return true;
-                else return false;
+                else
+                    return false;
             }
 
             public override void set_coords(int X, int Y, int Xd, int Yd)
             {
-                if (x - 6 <= X && X <= x + 6 && (y - a) - 6 <= Y && Y <= (y - a) + 6)//1
-                    a += Y - Yd;
-                else if ((x - c) - 6 <= X && X <= (x - c) + 6 && y - 6 <= Y && Y <= y + 6)//2
-                    c += X - Xd;
-                else if ((x + d) - 6 <= X && X <= (x + d) + 6 && (y) - 6 <= Y && Y <= (y + 6))//3
-                    d += Xd - X;
-                else if ((x) - 6 <= X && X <= (x + 6) && (y + b) - 6 <= Y && Y <= (y + b) + 6)//4
-                    b += Yd - Y;
+
             }
         }
-
 
         class Rectangle : Object
         {
-            public int a = 100, b = 60;
+            public int a = 50, b = 30;
             public Rectangle(int x, int y)
             {
                 this.x = x;
                 this.y = y;
+                fr1 = new Frame(x, y, a + 10, b + 10);
+                fr2 = new Frame(x, y, a - 10, b - 10);
             }
 
             public override void draw(Graphics gr)
             {
-                gr.FillRectangle(brw, x-a/2, y-b/2, a, b);
-                gr.DrawRectangle(blackPen, x - a / 2, y - b / 2, a, b);
+                gr.FillRectangle(brw, x - a, y - b, 2 * a, 2 * b);
+                gr.DrawRectangle(blackPen, x - a, y - b, 2 * a, 2 * b);
                 if (selected == 1)
-                    draw_frame(gr);
+                    gr.DrawRectangle(redPen, x - a, y - b, 2 * a, 2 * b);
+                else
+                    gr.DrawRectangle(blackPen, x - a, y - b, 2 * a, 2 * b);
+
             }
 
             public override void draw_frame(Graphics gr)
             {
-                gr.DrawRectangle(bluePen, x - a / 2, y - b / 2, a, b);
-
-                gr.DrawRectangle(redPen, x - 6, (y - b/2) - 6, 12, 12);
-                gr.DrawRectangle(redPen, (x - a/2) - 6, y - 6, 12, 12);
-                gr.DrawRectangle(redPen, (x + a/2) - 6, (y) - 6, 12, 12);
-                gr.DrawRectangle(redPen, (x) - 6, (y + b/2) - 6, 12, 12);
+                fr1.draw(gr);
+                fr2.draw(gr);
             }
             public override bool prov_(int X, int Y)
             {
-                if (x-a/2 <= X && X <= x-a/2 + a && y-b/2 <= Y && Y <= y-b/2 + b)
+                if (x - a <= X && X <= x - a + 2 * a && y - b <= Y && Y <= y - b + 2 * b)
                 {
                     selected = 1;
                     return true;
@@ -302,7 +314,7 @@ namespace Лаба_6_ООП
             }
             public override bool prov_exit(int X, int Y)
             {
-                if (X < 800 - a / 2 && X > a / 2 && Y > b / 2 && Y < 424 - b / 2)
+                if (x+X < 800 - a && x+X > a && y+Y > b && y+Y < 424 - b)
                     return true;
                 else
                     return false;
@@ -310,27 +322,15 @@ namespace Лаба_6_ООП
 
             public override bool prov_frame(int X, int Y)
             {
-                if (x - 6 <= X && X <= x + 6 && (y - b/2) - 6 <= Y && Y <= (y - b/2) + 6)//1
+                if (fr1.prov_(X, Y) && !fr2.prov_(X, Y))
                     return true;
-                else if ((x - a/2) - 6 <= X && X <= (x - a/2) + 6 && y - 6 <= Y && Y <= y + 6)//2
-                    return true;
-                else if ((x + a/2) - 6 <= X && X <= (x + a/2) + 6 && (y) - 6 <= Y && Y <= (y + 6))//3
-                    return true;
-                else if ((x) - 6 <= X && X <= (x + 6) && (y + b/2) - 6 <= Y && Y <= (y + b/2) + 6)//4
-                    return true;
-                else return false;
+                else
+                    return false;
             }
 
             public override void set_coords(int X, int Y, int Xd, int Yd)
             {
-                if (x - 6 <= X && X <= x + 6 && (y - b/2) - 6 <= Y && Y <= (y - b/2) + 6)//1
-                    b += 2*(Y - Yd);
-                else if ((x - a/2) - 6 <= X && X <= (x - a/2) + 6 && y - 6 <= Y && Y <= y + 6)//2
-                    a += 2*(X - Xd);
-                else if ((x + a/2) - 6 <= X && X <= (x + a/2) + 6 && (y) - 6 <= Y && Y <= (y + 6))//3
-                    a += 2*(Xd - X);
-                else if ((x) - 6 <= X && X <= (x + 6) && (y + b/2) - 6 <= Y && Y <= (y + b/2) + 6)//4
-                    b += 2*(Yd - Y);
+
             }
         }
 
@@ -404,13 +404,9 @@ namespace Лаба_6_ООП
             }
         }
 
-        
-
-
         Bitmap bitmap;
         Graphics gr;
 
-        
         public Form1()
         {
             InitializeComponent();
@@ -423,10 +419,10 @@ namespace Лаба_6_ООП
 
         Storage<Object> V;
         Object perobj0;
-
-        int per, but=1;
+        int per, but = 1;
         int Xd, Yd;
         bool myKeysPressed;
+
 
         private void sheet_MouseDown(object sender, MouseEventArgs e)
         {
@@ -438,18 +434,19 @@ namespace Лаба_6_ООП
                     perobj0 = V.getObject(i);
                     if (perobj0.prov_(e.X, e.Y))
                         perobj0.selected = 1;
+
                 }
                 clearSheet(gr);
                 DrawALL(gr);
                 sheet.Image = bitmap;
-
             }
-            else if (e.Button == MouseButtons.Left)
+            else if (e.Button == MouseButtons.Left) 
             {
+
                 bool abc;
                 Xd = e.X;
                 Yd = e.Y;
-                
+
                 for (int i = 0; i < V.get_size(); i++)
                 {
                     perobj0 = V.getObject(i);
@@ -461,10 +458,7 @@ namespace Лаба_6_ООП
                 per = provALL(e.X, e.Y);
                 if (per != -1)
                 {
-                    clearSheet(gr);
                     selectObj(per);
-                    DrawALL(gr);
-                    sheet.Image = bitmap;
                 }
                 else
                 {
@@ -472,27 +466,50 @@ namespace Лаба_6_ООП
                         V.push_back(new Vertex(e.X, e.Y));
                     else if (but == 3)
                         V.push_back(new Rectangle(e.X, e.Y));
-                    else if (but == 2)
-                        V.push_back(new Triangle(e.X, e.Y));
 
-                    DrawALL(gr);
-                    sheet.Image = bitmap;
                 }
-                
+                clearSheet(gr);
+                DrawALL(gr);
+                sheet.Image = bitmap;
+
             }
         }
-
+        private void Form1_KeyUp(object sender, KeyEventArgs e)
+        {
+            myKeysPressed = false;
+        }
         private void Form1_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar == (char)Keys.Space)
             {
-                удалениеToolStripMenuItem_Click(null, null);
+                int per = provALL_ver2();
+                if (per != -1)
+                {
+                    V.remove(per);
+                    clearSheet(gr);
+                    DrawALL(gr);
+                    sheet.Image = bitmap;
+                }
             }
-        }
+            else if (e.KeyChar == (char)Keys.Enter)
+            {
+                bool flag = false;
+                Group per = new Group();
+                for (int i = 0; i < V.get_size(); i++)
+                {
+                    perobj0 = V.getObject(i);
+                    if (perobj0.selected == 1)
+                    {
+                        flag = true;
+                        per.addshape(perobj0);
+                        V.remove(i);
+                        i--;
+                    }
+                }
+                if (flag == true)
+                    V.push_back(per);
 
-        private void Form1_KeyUp(object sender, KeyEventArgs e)
-        {
-            myKeysPressed = false;
+            }
         }
 
         private void треугольникToolStripMenuItem_Click(object sender, EventArgs e)
@@ -507,102 +524,102 @@ namespace Лаба_6_ООП
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
-            Object perObj;
             myKeysPressed = e.Shift;
-            for (int i = 0; i < V.get_size(); i++) 
+            int per = provALL_ver2();
+            if (per != -1)
             {
-                perObj = V.getObject(i);
-                if (perObj.selected == 1)
+                Object perObj = V.getObject(per);
+                if (e.KeyCode == Keys.Up)
                 {
-                    if (e.KeyCode == Keys.Up)
-                    {
-                        if (perObj.prov_exit(perObj.x, perObj.y - 10))
-                            perObj.y -= 10;
-                    }
-                    else if (e.KeyCode == Keys.Down)
-                    {
-                        if (perObj.prov_exit(perObj.x, perObj.y + 10))
-                            perObj.y += 10;
-                    }
-                    else if (e.KeyCode == Keys.Right)
-                    {
-                        if (perObj.prov_exit(perObj.x + 10, perObj.y))
-                            perObj.x += 10;
-                    }
-                    else if (e.KeyCode == Keys.Left)
-                    {
-                        if (perObj.prov_exit(perObj.x - 10, perObj.y))
-                            perObj.x -= 10;
-                    }
+                    if (perObj.prov_exit(0, -10))
+                        perObj.y -= 10;
+                    else
+                        MessageBox.Show("Объект выходит за границы");
                 }
+                else if (e.KeyCode == Keys.Down)
+                {
+                    if (perObj.prov_exit(0,10))
+                        perObj.y += 10;
+                    else
+                        MessageBox.Show("Объект выходит за границы");
+                }
+                else if (e.KeyCode == Keys.Right)
+                {
+                    if (perObj.prov_exit(10,0))
+                        perObj.x += 10;
+                    else
+                        MessageBox.Show("Объект выходит за границы");
+                }
+                else if (e.KeyCode == Keys.Left)
+                {
+                    if (perObj.prov_exit(-10,0))
+                        perObj.x -= 10;
+                    else
+                        MessageBox.Show("Объект выходит за границы");
+                }
+            }
+            clearSheet(gr);
+            DrawALL(gr);
+            sheet.Image = bitmap;
+        }
+
+        private void красныйToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int per = provALL_ver2();
+            if (per != -1)
+            {
+                Object perObj = V.getObject(per);
+                perObj.brw = Brushes.Red;
+                clearSheet(gr);
+                DrawALL(gr);
+                sheet.Image = bitmap;
+            }
+        }
+        private void синийToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int per = provALL_ver2();
+            if (per != -1)
+            {
+                Object perObj = V.getObject(per);
+                perObj.brw = Brushes.Blue;
                 clearSheet(gr);
                 DrawALL(gr);
                 sheet.Image = bitmap;
             }
         }
 
-        private void красныйToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Object per;
-            for (int i = V.get_size() - 1; i >= 0; i--)
-            {
-                per = V.getObject(i);
-                if (per.selected == 1)
-                    per.brw = Brushes.Red;
-            }
-            clearSheet(gr);
-            DrawALL(gr);
-            sheet.Image = bitmap;
-        }
-        private void синийToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Object per;
-            for (int i = V.get_size() - 1; i >= 0; i--)
-            {
-                per = V.getObject(i);
-                if (per.selected == 1)
-                    per.brw = Brushes.Blue;
-            }
-            clearSheet(gr);
-            DrawALL(gr);
-            sheet.Image = bitmap;
-        }
-
         private void зелёныйToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Object per;
-            for (int i = V.get_size() - 1; i >= 0; i--)
+            int per = provALL_ver2();
+            if (per != -1)
             {
-                per = V.getObject(i);
-                if (per.selected == 1)
-                    per.brw = Brushes.Green;
+                Object perObj = V.getObject(per);
+                perObj.brw = Brushes.Green;
+                clearSheet(gr);
+                DrawALL(gr);
+                sheet.Image = bitmap;
             }
-            clearSheet(gr);
-            DrawALL(gr);
-            sheet.Image = bitmap;
         }
 
         private void белыйToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Object per;
-            for (int i = V.get_size() - 1; i >= 0; i--)
+            int per = provALL_ver2();
+            if (per != -1)
             {
-                per = V.getObject(i);
-                if (per.selected == 1)
-                    per.brw = Brushes.White;
+                Object perObj = V.getObject(per);
+                perObj.brw = Brushes.White;
+                clearSheet(gr);
+                DrawALL(gr);
+                sheet.Image = bitmap;
             }
-            clearSheet(gr);
-            DrawALL(gr);
-            sheet.Image = bitmap;
         }
-
         private void sheet_MouseUp(object sender, MouseEventArgs e)
         {
             bool abc;
             for (int i = 0; i < V.get_size(); i++)
             {
                 perobj0 = V.getObject(i);
-                if (perobj0.prov_frame(Xd, Yd)) 
+                if (perobj0.prov_frame(Xd, Yd))
                 {
                     perobj0.set_coords(Xd, Yd, e.X, e.Y);
                     clearSheet(gr);
@@ -611,20 +628,19 @@ namespace Лаба_6_ООП
                     return;
                 }
             }
+
         }
 
         private void удалениеToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Object per;
-            for (int i = V.get_size() - 1; i >= 0; i--)
+            int per = provALL_ver2();
+            if (per != -1)
             {
-                per = V.getObject(i);
-                if (per.selected == 1)
-                    V.remove(i);
+                V.remove(per);
+                clearSheet(gr);
+                DrawALL(gr);
+                sheet.Image = bitmap;
             }
-            clearSheet(gr);
-            DrawALL(gr);
-            sheet.Image = bitmap;
         }
 
         private void кругToolStripMenuItem_Click(object sender, EventArgs e)
