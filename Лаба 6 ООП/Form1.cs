@@ -7,11 +7,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Text;
+using System.IO;
 
 namespace Лаба_6_ООП
 {
     public partial class Form1 : Form
     {
+
+        public void save()
+        {
+            for (int i = 0; i < V.get_size(); i++)
+            {
+                V.getObject(i).save(V);
+            }
+        }
         public void selectObj(int l)
         {
             for (int i = 0; i < V.get_size(); i++)
@@ -46,6 +56,17 @@ namespace Лаба_6_ООП
             return -1;
         }
 
+        public int provALL_ver3()
+        {
+            Object per;
+            for (int i = V.get_size() - 1; i >= 0; i--)
+            {
+                per = V.getObject(i);
+                if (per.selected == 1 && per is Group)
+                    return i;
+            }
+            return -1;
+        }
         public void clearSheet(Graphics gr)
         {
             gr.Clear(Color.White);
@@ -96,6 +117,8 @@ namespace Лаба_6_ООП
             public Pen bluePen;
             public Brush br, brw;
             public Frame fr1, fr2;
+
+            public string path = @"C:\files_pr\note.txt";
             public Object()
             {
                 blackPen = new Pen(Color.Black);
@@ -134,13 +157,18 @@ namespace Лаба_6_ООП
             virtual public void set_coords(int X, int Y, int Xd, int Yd)
             {
             }
+
+
+            virtual public async Task save(Storage<Object> V)
+            {
+            }
         }
 
         class Group : Object
         {
             public Storage<Object> objects;
-            
-            public int per, _x = 0, _y = 0, max = 0, min = 0;
+
+
             public Group()
             {
                 objects = new Storage<Object>();
@@ -159,6 +187,7 @@ namespace Лаба_6_ООП
                     for (int i = 0; i < objects.get_size(); i++)
                     {
                         perObj = objects.getObject(i);
+                        perObj.brw = brw;
                         perObj.x += x;
                         perObj.y += y;
                     }
@@ -169,6 +198,7 @@ namespace Лаба_6_ООП
                     for (int i = 0; i < objects.get_size(); i++)
                     {
                         perObj = objects.getObject(i);
+                        perObj.brw = brw;
                         perObj.selected = 1;
                         perObj.draw(gr);
                     }
@@ -177,6 +207,7 @@ namespace Лаба_6_ООП
                     for (int i = 0; i < objects.get_size(); i++)
                     {
                         perObj = objects.getObject(i);
+                        perObj.brw = brw;
                         perObj.selected = 0;
                         perObj.draw(gr);
                     }
@@ -211,6 +242,29 @@ namespace Лаба_6_ООП
                 return true;
             }
 
+            public void destroy(Storage<Object> T)
+            {
+                for (int i = 0; i < objects.get_size(); i++)
+                    T.push_back(objects.getObject(i));
+            }
+
+            override public async Task save(Storage<Object> V)
+            {
+                using (StreamWriter writer = new StreamWriter(path, true))
+                {
+                    await writer.WriteAsync("(");
+                }
+                for (int i = 0; i < objects.get_size(); i++)
+                {
+                    
+                    objects.getObject(i).save(V);
+                }
+                using (StreamWriter writer = new StreamWriter(path, true))
+                {
+                    await writer.WriteAsync(")");
+                }
+
+            }
 
         }
 
@@ -229,7 +283,7 @@ namespace Лаба_6_ООП
             public override void draw(Graphics gr)
             {
                 gr.FillEllipse(brw, (x - w), (y - h), w * 2, h * 2);
-                
+
                 if (selected == 1)
                     gr.DrawEllipse(redPen, (x - w), (y - h), w * 2, h * 2);
                 else
@@ -256,7 +310,7 @@ namespace Лаба_6_ООП
 
             public override bool prov_exit(int X, int Y)
             {
-                if (x+X < 800 - w && x+X > w && y+Y > h && y+Y < 424 - h)
+                if (x + X < 800 - w && x + X > w && y + Y > h && y + Y < 424 - h)
                     return true;
                 else
                     return false;
@@ -273,6 +327,14 @@ namespace Лаба_6_ООП
             public override void set_coords(int X, int Y, int Xd, int Yd)
             {
 
+            }
+
+            override public async Task save(Storage<Object> V)
+            {
+                using (StreamWriter writer = new StreamWriter(path, true))
+                {
+                    await writer.WriteAsync("V");          
+                }
             }
         }
 
@@ -314,7 +376,7 @@ namespace Лаба_6_ООП
             }
             public override bool prov_exit(int X, int Y)
             {
-                if (x+X < 800 - a && x+X > a && y+Y > b && y+Y < 424 - b)
+                if (x + X < 800 - a && x + X > a && y + Y > b && y + Y < 424 - b)
                     return true;
                 else
                     return false;
@@ -332,7 +394,21 @@ namespace Лаба_6_ООП
             {
 
             }
+
+            override public async Task save(Storage<Object> V)
+            {
+                using (StreamWriter writer = new StreamWriter(path, true))
+                {
+                        await writer.WriteAsync("R");           
+                }
+            }
         }
+
+
+
+
+
+
 
         class Storage<T>
         {
@@ -347,6 +423,7 @@ namespace Лаба_6_ООП
                 }
             };
 
+
             private Node arr;
             private int size;
             private Node iteratorElement;
@@ -354,6 +431,7 @@ namespace Лаба_6_ООП
             {
                 size = 0;
             }
+
 
             public int get_size()
             {
@@ -417,12 +495,14 @@ namespace Лаба_6_ООП
             clearSheet(gr);
         }
 
+
+        bool myKeysPressed = false;
         Storage<Object> V;
         Object perobj0;
+        Vertex perObj;
+        Rectangle perObj2;
         int per, but = 1;
         int Xd, Yd;
-        bool myKeysPressed;
-
 
         private void sheet_MouseDown(object sender, MouseEventArgs e)
         {
@@ -440,7 +520,7 @@ namespace Лаба_6_ООП
                 DrawALL(gr);
                 sheet.Image = bitmap;
             }
-            else if (e.Button == MouseButtons.Left) 
+            else if (e.Button == MouseButtons.Left)
             {
 
                 bool abc;
@@ -510,6 +590,17 @@ namespace Лаба_6_ООП
                     V.push_back(per);
 
             }
+            else if (e.KeyChar == (char)Keys.Back)
+            {
+                int per = provALL_ver3();
+                if (per != -1)
+                {
+                    Group perobj1 = (Group)V.getObject(per);
+                    perobj1.destroy(V);
+                    V.remove(per);
+                }
+
+            }
         }
 
         private void треугольникToolStripMenuItem_Click(object sender, EventArgs e)
@@ -538,21 +629,21 @@ namespace Лаба_6_ООП
                 }
                 else if (e.KeyCode == Keys.Down)
                 {
-                    if (perObj.prov_exit(0,10))
+                    if (perObj.prov_exit(0, 10))
                         perObj.y += 10;
                     else
                         MessageBox.Show("Объект выходит за границы");
                 }
                 else if (e.KeyCode == Keys.Right)
                 {
-                    if (perObj.prov_exit(10,0))
+                    if (perObj.prov_exit(10, 0))
                         perObj.x += 10;
                     else
                         MessageBox.Show("Объект выходит за границы");
                 }
                 else if (e.KeyCode == Keys.Left)
                 {
-                    if (perObj.prov_exit(-10,0))
+                    if (perObj.prov_exit(-10, 0))
                         perObj.x -= 10;
                     else
                         MessageBox.Show("Объект выходит за границы");
@@ -629,6 +720,12 @@ namespace Лаба_6_ООП
                 }
             }
 
+        }
+
+
+        private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            save();
         }
 
         private void удалениеToolStripMenuItem_Click(object sender, EventArgs e)
