@@ -40,10 +40,11 @@
             this.зелёныйToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.белыйToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.удалениеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.sheet = new System.Windows.Forms.PictureBox();
             this.хранилищеToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.сохранитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.загрузитьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.sheet = new System.Windows.Forms.PictureBox();
+            this.очиститьToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.sheet)).BeginInit();
             this.SuspendLayout();
@@ -146,21 +147,12 @@
             this.удалениеToolStripMenuItem.Text = "Удаление";
             this.удалениеToolStripMenuItem.Click += new System.EventHandler(this.удалениеToolStripMenuItem_Click);
             // 
-            // sheet
-            // 
-            this.sheet.Location = new System.Drawing.Point(0, 27);
-            this.sheet.Name = "sheet";
-            this.sheet.Size = new System.Drawing.Size(800, 424);
-            this.sheet.TabIndex = 1;
-            this.sheet.TabStop = false;
-            this.sheet.MouseDown += new System.Windows.Forms.MouseEventHandler(this.sheet_MouseDown);
-            this.sheet.MouseUp += new System.Windows.Forms.MouseEventHandler(this.sheet_MouseUp);
-            // 
             // хранилищеToolStripMenuItem
             // 
             this.хранилищеToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.сохранитьToolStripMenuItem,
-            this.загрузитьToolStripMenuItem});
+            this.загрузитьToolStripMenuItem,
+            this.очиститьToolStripMenuItem});
             this.хранилищеToolStripMenuItem.Name = "хранилищеToolStripMenuItem";
             this.хранилищеToolStripMenuItem.Size = new System.Drawing.Size(84, 20);
             this.хранилищеToolStripMenuItem.Text = "Хранилище";
@@ -177,6 +169,24 @@
             this.загрузитьToolStripMenuItem.Name = "загрузитьToolStripMenuItem";
             this.загрузитьToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.загрузитьToolStripMenuItem.Text = "Загрузить";
+            this.загрузитьToolStripMenuItem.Click += new System.EventHandler(this.загрузитьToolStripMenuItem_Click);
+            // 
+            // sheet
+            // 
+            this.sheet.Location = new System.Drawing.Point(0, 27);
+            this.sheet.Name = "sheet";
+            this.sheet.Size = new System.Drawing.Size(800, 424);
+            this.sheet.TabIndex = 1;
+            this.sheet.TabStop = false;
+            this.sheet.MouseDown += new System.Windows.Forms.MouseEventHandler(this.sheet_MouseDown);
+            this.sheet.MouseUp += new System.Windows.Forms.MouseEventHandler(this.sheet_MouseUp);
+            // 
+            // очиститьToolStripMenuItem
+            // 
+            this.очиститьToolStripMenuItem.Name = "очиститьToolStripMenuItem";
+            this.очиститьToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.очиститьToolStripMenuItem.Text = "Очистить";
+            this.очиститьToolStripMenuItem.Click += new System.EventHandler(this.очиститьToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -217,6 +227,7 @@
         private System.Windows.Forms.ToolStripMenuItem хранилищеToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem сохранитьToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem загрузитьToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem очиститьToolStripMenuItem;
     }
 }
 

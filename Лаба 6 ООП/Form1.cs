@@ -15,11 +15,67 @@ namespace Лаба_6_ООП
     public partial class Form1 : Form
     {
 
-        public void save()
+        public int num_str;
+        public async void load() 
         {
+            string per, line;
+            string[] info = new string[num_str];
+            using (StreamReader reader = new StreamReader(path))
+            {
+                per = await reader.ReadLineAsync();
+                for (int i =0; i<num_str; i++)
+                {
+                    
+                    info[i] = await reader.ReadLineAsync();
+                    MessageBox.Show(info[i]);
+                    i++;
+                }
+            }
+
+            while (per[0] != '*') 
+            {
+                if (per[0] == '(')
+                {
+                    Group gr = new Group();
+                    gr.load(per, V, info);
+                    V.push_back(gr);
+                }
+                else if (per[0] == 'V')
+                {
+                    Vertex vr = new Vertex(0, 0);
+                    vr.load(per, V, info);
+                    V.push_back(vr);
+                }
+                else if (per[0] == 'R')
+                {
+                    Rectangle rc = new Rectangle(0, 0);
+                    rc.load(per, V, info);
+                    V.push_back(rc);
+                }
+                per = per.Substring(1);
+            }
+            clearSheet(gr);
+            DrawALL(gr);
+            sheet.Image = bitmap;
+
+        }
+        public async void save()
+        {
+            num_str = V.get_size();
+
             for (int i = 0; i < V.get_size(); i++)
             {
                 V.getObject(i).save(V);
+            }
+
+            using (StreamWriter writer = new StreamWriter(path, true))
+            {
+                await writer.WriteAsync("*");
+            }
+
+            for (int i = 0; i < V.get_size(); i++)
+            {
+                V.getObject(i).save_info(V);
             }
         }
         public void selectObj(int l)
@@ -162,6 +218,14 @@ namespace Лаба_6_ООП
             virtual public async Task save(Storage<Object> V)
             {
             }
+
+            virtual public async Task save_info(Storage<Object> V)
+            {
+            }
+
+            virtual public void load(string per, Storage<Object> V, string[] info) 
+            {
+            }
         }
 
         class Group : Object
@@ -266,6 +330,38 @@ namespace Лаба_6_ООП
 
             }
 
+            override public async Task save_info(Storage<Object> V)
+            {
+                for (int i = 0; i < objects.get_size(); i++)
+                    objects.getObject(i).save_info(V);
+                
+            }
+
+            override public void load(string per, Storage<Object> V, string[] info)
+            {
+                while (per[0] != ')') 
+                {
+                    if (per[0] == '(') 
+                    {
+                        Group gr = new Group();
+                        gr.load(per, V, info);
+                    }
+                    else if (per[0] == 'V') 
+                    {
+                        Vertex vr = new Vertex(0,0);
+                        vr.load(per, V, info);
+                        addshape(vr);
+                    }
+                    else if (per[0] == 'R')
+                    {
+                        Vertex vr = new Vertex(0, 0);
+                        vr.load(per, V, info);
+                        addshape(vr);
+                    }
+                    per = per.Substring(1);
+                }
+            }
+
         }
 
         class Vertex : Object
@@ -336,6 +432,25 @@ namespace Лаба_6_ООП
                     await writer.WriteAsync("V");          
                 }
             }
+
+            override public async Task save_info(Storage<Object> V)
+            {
+                using (StreamWriter writer = new StreamWriter(path, true))
+                {
+                    await writer.WriteAsync("\n"+x.ToString()+" "+y.ToString());
+                }
+            }
+            override public async void load(string per, Storage<Object> V, string[] info)
+            {
+                string text = info[0];
+
+
+                string[] words = text.Split(new char[] {' '});
+                MessageBox.Show(words[0]);
+                MessageBox.Show(words[1]);
+                x = Convert.ToInt32(words[0]);
+                y = Convert.ToInt32(words[1]);
+            }
         }
 
         class Rectangle : Object
@@ -401,6 +516,26 @@ namespace Лаба_6_ООП
                 {
                         await writer.WriteAsync("R");           
                 }
+            }
+            override public async Task save_info(Storage<Object> V)
+            {
+                using (StreamWriter writer = new StreamWriter(path, true))
+                {
+                    await writer.WriteAsync("\n" + x.ToString() + " " + y.ToString());
+                }
+            }
+
+            override public async void load(string per, Storage<Object> V, string[] info)
+            {
+                string text;
+                using (StreamReader reader = new StreamReader(path))
+                {
+                    text = await reader.ReadLineAsync();
+                }
+
+                string[] words = text.Split(new char[] { ' ' });
+                x = Convert.ToInt32(words[0]);
+                y = Convert.ToInt32(words[1]);
             }
         }
 
@@ -495,7 +630,7 @@ namespace Лаба_6_ООП
             clearSheet(gr);
         }
 
-
+        public string path = @"C:\files_pr\note.txt";
         bool myKeysPressed = false;
         Storage<Object> V;
         Object perobj0;
@@ -726,6 +861,18 @@ namespace Лаба_6_ООП
         private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)
         {
             save();
+        }
+
+        private void очиститьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            StreamWriter sr = new StreamWriter(path, false);
+            sr.Write("");
+            sr.Close();
+        }
+
+        private void загрузитьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            load();
         }
 
         private void удалениеToolStripMenuItem_Click(object sender, EventArgs e)
